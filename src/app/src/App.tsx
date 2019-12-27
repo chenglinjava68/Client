@@ -1,0 +1,81 @@
+import React from 'react';
+import configureStore from '../../shared/redux/configureStore';
+import navReducer from './redux/reducers/nav';
+import {
+  AppWithNavigationState,
+  middleware as routerMiddleware,
+} from './router';
+const store = configureStore({
+  additionReducer: {
+    nav: navReducer,
+  },
+  additionMiddleware: [routerMiddleware],
+});
+import { Provider as ReduxProvider } from 'react-redux';
+import { Provider as AntdProvider } from '@ant-design/react-native';
+import { ThemeProvider } from 'styled-components/native';
+import { injectLoginSuccessCallback } from '@shared/utils/inject';
+import { bindInfo, tryLocalNotify } from './notify';
+import { attachStore } from '@shared/utils/cache-helper';
+import styledTheme from '@src/shared/utils/theme';
+import _get from 'lodash/get';
+
+attachStore(store);
+
+import * as trpgApi from '@shared/api/trpg.api';
+const api = trpgApi.getInstance();
+trpgApi.bindEventFunc.call(api, store, {
+  onReceiveMessage(messageData) {
+    const sender_uuid = messageData.sender_uuid;
+    const message = messageData.message;
+    const name =
+      _get(store.getState(), ['cache', 'user', sender_uuid, 'nickname']) ??
+      _get(store.getState(), ['cache', 'user', sender_uuid, 'username']) ??
+      sender_uuid;
+    tryLocalNotify(name, message);
+  },
+});
+
+injectLoginSuccessCallback(() => {
+  // 登录成功
+  const userUUID = _get(store.getState(), ['user', 'info', 'uuid']);
+  bindInfo(userUUID);
+});
+
+// token登录
+import rnStorage from '@shared/api/rn-storage.api';
+import { loginWithToken } from '@src/shared/redux/actions/user';
+import ErrorBoundary from '@shared/components/ErrorBoundary';
+import ErrorView from './ErrorView';
+import TRPGCodePush from './components/TRPGCodePush';
+
+(async () => {
+  console.log('读取本地存储的token...');
+  let uuid = await rnStorage.get('uuid');
+  let token = await rnStorage.get('token');
+  console.log('uuid:', uuid, 'token:', token);
+  if (!!token && !!uuid) {
+    console.log('尝试登陆uuid:', uuid);
+    store.dispatch(loginWithToken(uuid, token));
+  }
+})();
+
+class App extends React.Component {
+  render() {
+    return (
+      <ErrorBoundary renderError={ErrorView}>
+        <ReduxProvider store={store}>
+          <AntdProvider>
+            <ThemeProvider theme={styledTheme}>
+              <TRPGCodePush>
+                <AppWithNavigationState />
+              </TRPGCodePush>
+            </ThemeProvider>
+          </AntdProvider>
+        </ReduxProvider>
+      </ErrorBoundary>
+    );
+  }
+}
+
+export default App;
