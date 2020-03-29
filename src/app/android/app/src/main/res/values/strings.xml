@@ -1,0 +1,5 @@
+<resources>
+	<string moduleConfig="true" name="reactNativeCodePush_androidDeploymentKey">pafmXkZi2xoKkj7UkNrGijKJJu2c4ksvOXqog</string>
+	<string moduleConfig="true" name="reactNativeCodePush_androidServerUrl">http://codepush.moonrailgun.com</string>
+    <string name="app_name">TRPG</string>
+</resources>
