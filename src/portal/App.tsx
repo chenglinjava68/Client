@@ -1,0 +1,47 @@
+import React from 'react';
+import { Router, Switch, Route, RouteProps } from 'react-router';
+
+import { postMessage } from '@portal/utils/event';
+import history from './history';
+import { routes } from './routes';
+
+interface TitleRouteProps extends RouteProps {
+  title: string;
+}
+const TitleRoute: React.FC<TitleRouteProps> = React.memo((route) => {
+  const { path, title } = route;
+
+  return (
+    <Route
+      path={path}
+      render={(props) => {
+        document.title = title || 'TRPG Portal';
+
+        postMessage('common::updatePath', {
+          title: document.title,
+          path,
+        });
+
+        const Component = route.component;
+        return <Component {...props}>{route.children}</Component>;
+      }}
+    />
+  );
+});
+TitleRoute.displayName = 'TitleRoute';
+
+class App extends React.Component {
+  render() {
+    return (
+      <Router history={history}>
+        <Switch>
+          {routes.map((config) => (
+            <TitleRoute key={config.path} {...config} />
+          ))}
+        </Switch>
+      </Router>
+    );
+  }
+}
+
+export default App;

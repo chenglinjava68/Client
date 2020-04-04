@@ -1,0 +1,12 @@
+.image-viewer {
+  cursor: pointer;
+
+  img {
+    display: block;
+  }
+}
+
+// react-image-lightbox
+.ReactModalPortal .ReactModal__Overlay .ril-toolbar .ril-toolbar__item > button {
+  outline: 0;
+}
