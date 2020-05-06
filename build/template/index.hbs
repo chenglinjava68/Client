@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="trpg,im,react,game">
+    <meta name="description" content="TRPG Engine 即时通讯IM">
+    <meta name="renderer" content="webkit">
+    <meta name="force-rendering" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    {{#if isPro}}
+    <link rel="manifest" href="/src/web/assets/lib/manifest.json">
+    {{/if}}
+    <title>TRPG-Game</title>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-121610011-1"></script>
+    <!-- DLL -->
+    <script src="/{{dllHashName}}.js"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      gtag('js', new Date());
+
+      gtag('config', 'UA-121610011-1');
+    </script>
+    {{#if isDev}}
+    <style>
+      body {
+        /* 开发环境移除背景图 */
+        background-image: none !important;
+      }
+    </style>
+    {{/if}}
+  </head>
+  <body>
+    <div id="app">
+      <div id="pre-loading">
+        应用正在加载中....请稍后
+      </div>
+    </div>
+    <!-- <script type="text/javascript" src="/bundle.js"></script> -->
+  </body>
+</html>
