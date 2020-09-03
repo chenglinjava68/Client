@@ -1,0 +1,135 @@
+version: 2
+jobs:
+  node:
+    working_directory: ~/trpg
+    docker:
+      - image: circleci/node:10.18.1
+    steps:
+      - checkout
+      - run:
+          name: update-npm
+          command: sudo npm install -g npm@latest
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}-{{ arch }}
+      - restore_cache:
+          key: dependency-cache-rn-{{ checksum "src/app/package.json" }}-{{ arch }}
+      - run:
+          name: install-npm-wee
+          command: npm install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}-{{ arch }}
+          paths:
+            - node_modules
+      - save_cache:
+          key: dependency-cache-rn-{{ checksum "src/app/package.json" }}-{{ arch }}
+          paths:
+            - src/app/node_modules
+      - run:
+          name: test
+          command: npm run test
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4096
+  Build Electron App:
+    working_directory: ~/trpg
+    docker:
+      - image: circleci/node:10.18.1
+    steps:
+      - checkout
+      # 更新node依赖
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}-{{ arch }}
+      - run:
+          name: install-npm-wee
+          command: npm install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}-{{ arch }}
+          paths:
+            - node_modules
+      # 更新electron依赖
+      - restore_cache:
+          key: electron-cache-{{ checksum "package.json" }}-{{ arch }}
+      - run:
+          name: install-npm-wee
+          command: npm install
+      - save_cache:
+          key: electron-cache-{{ checksum "package.json" }}-{{ arch }}
+          paths:
+            - ~/.cache/electron
+      - run:
+          name: prepare-env
+          command: chmod +x ./.circleci/prepare_env.sh && ./.circleci/prepare_env.sh
+      - run:
+          name: build
+          command: npm run package-all
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4096
+      - store_artifacts:
+          path: ./dist
+  Build RN Code:
+    working_directory: ~/trpg
+    docker:
+      - image: circleci/node:10.18.1
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}-{{ checksum "src/app/package.json" }}-{{ arch }}
+      - run:
+          name: install-node_module
+          command: npm install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}-{{ checksum "src/app/package.json" }}-{{ arch }}
+          paths:
+            - node_modules
+            - src/app/node_modules
+      - run:
+          name: bundle
+          command: cd ./src/app && npm run build:env && sh ./build/bundle.sh
+  Build Android App:
+    working_directory: ~/trpg
+    docker:
+      - image: circleci/android:api-28-node
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}-{{ checksum "src/app/package.json" }}-{{ arch }}
+      - run:
+          name: install-node_module
+          command: npm install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}-{{ checksum "src/app/package.json" }}-{{ arch }}
+          paths:
+            - node_modules
+            - src/app/node_modules
+      - restore_cache:
+          key: gradle-cache-{{ checksum "src/app/android/build.gradle" }}-{{ arch }}
+      - run:
+          name: packageDebug
+          command: cd src/app && cd ./android && ./gradlew app:packageDebug
+      - save_cache:
+          key: gradle-cache-{{ checksum "src/app/android/build.gradle" }}-{{ arch }}
+          paths:
+            - ~/.gradle/
+      - store_artifacts:
+          path: ./android/app/build/outputs/apk/
+workflows:
+  version: 2
+  build:
+    jobs:
+      - node
+      # - Build Electron App:
+      #     requires:
+      #       - node
+      - Build RN Code:
+          filters:
+            branches:
+              only:
+                - release
+          requires:
+            - node
+      - Build Android App:
+          filters:
+            branches:
+              only:
+                - release
+          requires:
+            - node
