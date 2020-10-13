@@ -1,0 +1,45 @@
+sudo: required
+os:
+- linux
+dist: trusty
+language: node_js
+node_js:
+  - '7'
+  - '8'
+  - '9'
+matrix:
+  allow_failures:
+  - node_js: '9'
+cache:
+  - apt: true
+  - directories:
+    - "node_modules"
+    - "$HOME/.electron"
+before_install:
+  - chmod +x build/ci/before_install.sh
+  - chmod +x build/ci/zipapp.sh
+  - build/ci/before_install.sh
+install:
+  - npm install
+  - npm update
+script:
+  - npm run package-all
+  - NODE_ENV=production npm run build
+after_success:
+  # - cd ./dist/
+  # - cp ../build/CNAME ./
+  # - mkdir -p src/assets
+  # - cp -r ../src/assets/* ./src/assets
+  # - echo "app/*.zip" > .gitignore
+  # - sh ../build/ci/zipapp.sh
+  # - sh ../build/ci/upload_release.sh
+  # - git init
+  # - git config user.name "travis"
+  # - git config user.email "travis@travis.com"
+  # - git add .
+  # - git commit -m "update file"
+  # - git branch -m gh-pages
+  # - git push --force "https://${GH_TOKEN}@${GH_REF}" gh-pages:gh-pages
+env:
+  global:
+    - GH_REF: github.com/TRPGEngine/Client.git
