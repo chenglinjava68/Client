@@ -1,0 +1,5 @@
+<resources>
+	<string name="app_name">TRPG</string>
+	<string moduleConfig="true" name="CodePushDeploymentKey">pafmXkZi2xoKkj7UkNrGijKJJu2c4ksvOXqog</string>
+	<string moduleConfig="true" name="CodePushServerUrl">http://codepush.moonrailgun.com</string>
+</resources>
