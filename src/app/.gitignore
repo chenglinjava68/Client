@@ -1,0 +1,8 @@
+android/build/
+android/app/build/
+*.keystore
+!android/app/debug.keystore
+.jest/
+version.json
+build/script/.deps
+sentry.properties
